@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>The Red Zone – Check In</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --red: #C0392B; --dark-red: #922B21; --light-red: #FADBD8; --black: #1a1a1a; --white: #ffffff; --gray: #f5f5f5; --border: #e0e0e0; --text: #222; --muted: #777; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Inter', sans-serif; background: var(--black); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .phone-wrap { width: 100%; max-width: 390px; background: var(--white); border-radius: 28px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); min-height: 600px; }
+  .header { background: var(--red); padding: 32px 24px 24px; text-align: center; }
+  .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 3px; color: var(--white); line-height: 1; }
+  .header-sub { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-top: 4px; }
+  .screen { display: none; padding: 28px 24px; }
+  .screen.active { display: block; }
+  h2 { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+  .btn { width: 100%; padding: 15px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; letter-spacing: 0.3px; transition: transform 0.1s, opacity 0.1s; }
+  .btn:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-red { background: var(--red); color: var(--white); margin-bottom: 12px; }
+  .btn-outline { background: var(--white); color: var(--text); border: 1.5px solid var(--border); margin-bottom: 12px; }
+  .btn-back { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; padding: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 4px; }
+  .divider { text-align: center; color: var(--muted); font-size: 13px; margin: 4px 0 16px; }
+  .search { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Inter', sans-serif; outline: none; margin-bottom: 12px; color: var(--text); background: var(--gray); }
+  .search:focus { border-color: var(--red); background: var(--white); }
+  .name-list { max-height: 300px; overflow-y: auto; border: 1.5px solid var(--border); border-radius: 10px; }
+  .name-item { padding: 13px 16px; font-size: 15px; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); transition: background 0.1s; }
+  .name-item:last-child { border-bottom: none; }
+  .name-item:hover, .name-item:active { background: var(--light-red); color: var(--dark-red); }
+  .new-link { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .new-link span { color: var(--red); cursor: pointer; font-weight: 500; }
+  .confirm-card { background: var(--gray); border-radius: 14px; padding: 20px; margin-bottom: 24px; border: 1.5px solid var(--border); }
+  .confirm-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--red); color: var(--white); font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-family: 'Bebas Neue', sans-serif; }
+  .confirm-name { font-size: 18px; font-weight: 600; color: var(--text); text-align: center; margin-bottom: 14px; }
+  .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--muted); }
+  .info-value { color: var(--text); font-weight: 500; text-align: right; max-width: 60%; word-break: break-all; }
+  .field-group { margin-bottom: 16px; }
+  .field-label { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: block; }
+  .field-input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Inter', sans-serif; outline: none; color: var(--text); background: var(--gray); }
+  .field-input:focus { border-color: var(--red); background: var(--white); }
+  .required { color: var(--red); }
+  .success-wrap { text-align: center; padding: 12px 0; }
+  .success-circle { width: 72px; height: 72px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .check-svg { width: 32px; height: 32px; stroke: white; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .success-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; color: var(--text); margin-bottom: 8px; }
+  .success-msg { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 28px; }
+  @media (max-width: 420px) { .phone-wrap { border-radius: 0; min-height: 100vh; } body { padding: 0; align-items: flex-start; } }
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+  <div class="header">
+    <div class="header-title">The Red Zone</div>
+    <div class="header-sub">Wednesday Night Check-In</div>
+  </div>
+
+  <div id="s-welcome" class="screen active">
+    <h2>Welcome, brother!</h2>
+    <p class="sub">Have you been to the Red Zone before?</p>
+    <button class="btn btn-red" onclick="show('s-returning')">Yes — I've been here before</button>
+    <div class="divider">or</div>
+    <button class="btn btn-outline" onclick="show('s-new')">No — this is my first time</button>
+  </div>
+
+  <div id="s-returning" class="screen">
+    <button class="btn-back" onclick="show('s-welcome')">← Back</button>
+    <h2>Find your name</h2>
+    <p class="sub">Scroll or type to search, then tap your name.</p>
+    <input class="search" type="text" placeholder="Search your name..." oninput="filterNames(this.value)" id="name-search" autocomplete="off" />
+    <div class="name-list" id="name-list"></div>
+    <div class="new-link">Not on the list? <span onclick="show('s-new')">Sign in as new →</span></div>
+  </div>
+
+  <div id="s-confirm" class="screen">
+    <button class="btn-back" onclick="show('s-returning')">← Back</button>
+    <h2>Is this you?</h2>
+    <p class="sub">Tap confirm to check in.</p>
+    <div class="confirm-card">
+      <div class="confirm-avatar" id="confirm-initials"></div>
+      <div class="confirm-name" id="confirm-name-text"></div>
+      <div id="confirm-info"></div>
+    </div>
+    <button class="btn btn-red" onclick="submitReturning()">Yes, check me in</button>
+    <button class="btn btn-outline" onclick="show('s-returning')">Not me</button>
+  </div>
+
+  <div id="s-new" class="screen">
+    <button class="btn-back" onclick="show('s-welcome')">← Back</button>
+    <h2>Welcome, first-timer!</h2>
+    <p class="sub">So glad you're here. Fill in your info below.</p>
+    <div class="field-group">
+      <label class="field-label">Full name <span class="required">*</span></label>
+      <input class="field-input" type="text" id="new-name" placeholder="First and last name" autocomplete="name" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Email address</label>
+      <input class="field-input" type="email" id="new-email" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Phone number</label>
+      <input class="field-input" type="tel" id="new-phone" placeholder="(562) 555-1234" autocomplete="tel" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Birthday (month / day)</label>
+      <input class="field-input" type="text" id="new-bday" placeholder="e.g. 8/11" />
+    </div>
+    <button class="btn btn-red" onclick="submitNew()">Submit &amp; check in</button>
+  </div>
+
+  <div id="s-done" class="screen">
+    <div class="success-wrap">
+      <div class="success-circle">
+        <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+      <div class="success-title" id="done-title">Checked In!</div>
+      <p class="success-msg" id="done-msg"></p>
+      <button class="btn btn-red" onclick="reset()">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz1ncEt3HV2R-ys1rtf4QGP1Bt8Qf6DNcn4LpvppilSUynoUs7CufwQrk3qfU-jgeBc/exec';
+
+const MEMBERS = [
+  {name:"Aaron Whitehurst II",email:"aaron.whitehurstii@gmail.com",phone:"562-313-9037",birthday:"4/14"},
+  {name:"Aaron Whitehurst Sr.",email:"aaronqw@gmail.com",phone:"562-513-4014",birthday:"4/21"},
+  {name:"Art Davis",email:"foravsty@pacbell.net",phone:"310-994-0595",birthday:"11/15"},
+  {name:"Benjamin Letcher",email:"",phone:"951-642-0083",birthday:"2/21"},
+  {name:"Brandon Crawford",email:"heavenandhealth2.12@gmail.com",phone:"424-391-6594",birthday:"7/16"},
+  {name:"Brandon Richard",email:"richisabeast@gmail.com",phone:"562-552-3842",birthday:"9/3"},
+  {name:"Brennan Smith",email:"smithbrennan534@gmail.com",phone:"424-634-2263",birthday:"7/20"},
+  {name:"Brenton Scott",email:"brentonhoward093@gmail.com",phone:"562-746-1997",birthday:"9/15"},
+  {name:"Brevenn Howard",email:"blessedbrev@yahoo.com",phone:"562-637-3427",birthday:"7/9"},
+  {name:"Brown Bonsu",email:"kbboosom@gmail.com",phone:"617-435-9850",birthday:"10/4"},
+  {name:"Bryant Jackson",email:"bryantkjackson@gmail.com",phone:"562-507-8045",birthday:"4/19"},
+  {name:"Calib Austin",email:"adonis120897@gmail.com",phone:"",birthday:"12/8"},
+  {name:"Carlos Rivers",email:"carlos.riv007@yahoo.com",phone:"562-980-0118",birthday:"3/6"},
+  {name:"Charles Brown",email:"charlesbrownjr9@gmail.com",phone:"909-241-5438",birthday:"7/23"},
+  {name:"Charles Dorsey",email:"thedrdorsey@gmail.com",phone:"949-209-5008",birthday:"7/17"},
+  {name:"Chris Chaney",email:"chrischaney710@yahoo.com",phone:"562-519-9388",birthday:"2/21"},
+  {name:"Chris Waters",email:"16831kittredge@gmail.com",phone:"",birthday:""},
+  {name:"Colin Caesar",email:"czarenterprise@yahoo.com",phone:"562-508-0122",birthday:"10/19"},
+  {name:"Daren Brim",email:"brimdaren22@gmail.com",phone:"",birthday:""},
+  {name:"Darren Johnson",email:"darrenjay4@gmail.com",phone:"562-321-0433",birthday:"9/25"},
+  {name:"Dauwan Osborne",email:"caliskalyp20@gmail.com",phone:"424-209-8613",birthday:"11/5"},
+  {name:"David Tucker",email:"david.tucker.113@gmail.com",phone:"562-675-3567",birthday:"5/4"},
+  {name:"David Williams",email:"davidkeithwill@gmail.com",phone:"310-502-7201",birthday:"8/10"},
+  {name:"Derrach West",email:"westderrach@gmail.com",phone:"562-523-3556",birthday:"12/17"},
+  {name:"Deshaun Ward",email:"deshaunward51@gmail.com",phone:"562-620-0959",birthday:"11/2"},
+  {name:"Dr. Charles Flowers",email:"charles.flowers@gmail.com",phone:"",birthday:""},
+  {name:"Dwaine Wilson",email:"dwainwilsonjr427@gmail.com",phone:"",birthday:""},
+  {name:"Glen Moore",email:"glendellmr88@gmail.com",phone:"424-215-5661",birthday:"9/17"},
+  {name:"Greg Young",email:"younggregory1166@gmail.com",phone:"562-972-9583",birthday:"6/11"},
+  {name:"Isaiah Ferguson",email:"isaiahferguson101@gmail.com",phone:"657-793-4668",birthday:"5/28"},
+  {name:"Jason Hamilton",email:"melo74th@gmail.com",phone:"323-501-9416",birthday:"8/9"},
+  {name:"Jaushay Rockett",email:"rockettjaushay@gmail.com",phone:"",birthday:""},
+  {name:"Jermaine Harris",email:"professorjermaineharris@gmail.com",phone:"562-972-8260",birthday:"8/30"},
+  {name:"Jermaine Paul",email:"berserk@gmail.com",phone:"",birthday:"9/24"},
+  {name:"Jim Hill",email:"jhill@hillpr.com",phone:"510-427-4623",birthday:"8/11"},
+  {name:"Joe Williams",email:"jkevwilliams@gmail.com",phone:"",birthday:""},
+  {name:"Johnathan Youngblood",email:"johnathanyoungblood35@gmail.com",phone:"323-945-2963",birthday:"1/24"},
+  {name:"Joseph Clark",email:"cajclark253@gmail.com",phone:"253-691-1898",birthday:"8/31"},
+  {name:"Joseph Tracey",email:"joseph.a.tracey3.mil@army.mil",phone:"954-504-5251",birthday:""},
+  {name:"Kasaun Wilson",email:"kasaunwilson@gmail.com",phone:"302-757-4599",birthday:"10/7"},
+  {name:"Kyle Moore",email:"km10588@gmail.com",phone:"301-801-2935",birthday:"10/5"},
+  {name:"L J",email:"alchemistbanks@gmail.com",phone:"901-292-5463",birthday:"1/14"},
+  {name:"Lawrence Killens",email:"lawrence.killens@gmail.com",phone:"310-686-7457",birthday:"4/17"},
+  {name:"Lindsey Beard",email:"lbeard3@charter.net",phone:"310-344-5591",birthday:"9/8"},
+  {name:"Marlon Rodriquez",email:"mar.rodo359@gmail.com",phone:"213-880-8221",birthday:"2/5"},
+  {name:"Marquine Lang",email:"marquinelang@gmail.com",phone:"323-806-1004",birthday:"8/2"},
+  {name:"Matthew Moseray",email:"matthew.moseray@gmail.com",phone:"412-983-2116",birthday:"1/19"},
+  {name:"Michael Jenkins",email:"mikejnov8@gmail.com",phone:"646-331-4033",birthday:"11/8"},
+  {name:"Naaman Bethea",email:"naaman.alexander@gmail.com",phone:"609-532-7657",birthday:"12/4"},
+  {name:"Norman Harris",email:"harrisnjr@gmail.com",phone:"678-656-8183",birthday:"1/22"},
+  {name:"Ojore Weems",email:"ojoreweems@gmail.com",phone:"661-802-6945",birthday:"10/8"},
+  {name:"Paul Smith",email:"paulsmithj23@gmail.com",phone:"714-707-0252",birthday:"2/3"},
+  {name:"Quentin Holmes",email:"quentinholmes@hotmail.com",phone:"562-472-8202",birthday:"7/7"},
+  {name:"Quinn Hines",email:"hinesjguinn@gmail.com",phone:"909-938-2945",birthday:"12/25"},
+  {name:"Rafael Sanderson",email:"studda323@gmail.com",phone:"",birthday:""},
+  {name:"Richard Grant Jr.",email:"richardgrant102271@gmail.com",phone:"213-408-6374",birthday:"10/22"},
+  {name:"Robert Murphy",email:"ezramuselay@gmail.com",phone:"",birthday:""},
+  {name:"Rod Perkins",email:"RoderickPerk1@gmail.com",phone:"562-259-4161",birthday:""},
+  {name:"Rod Swift",email:"rodswift75@gmail.com",phone:"310-702-5922",birthday:"3/12"},
+  {name:"Ronnie Warren",email:"ronniewarren23@icloud.com",phone:"562-668-7621",birthday:""},
+  {name:"Shelby Lee",email:"shelbyjr254@outlook.com",phone:"",birthday:""},
+  {name:"Skye Victoriano",email:"skyevictoriano@gmail.com",phone:"310-951-4067",birthday:"2/19"},
+  {name:"Terrence Jeffrey",email:"terrencejeffrey@gmail.com",phone:"951-454-9169",birthday:""},
+  {name:"ToaVon Sheats",email:"toavonsheats@gmail.com",phone:"404-398-8470",birthday:"5/30"},
+  {name:"Tobi Oginni",email:"Tobi.oginni@gmail.com",phone:"626-703-0301",birthday:"7/1"},
+  {name:"Torik Blankson",email:"tblankson@gmail.com",phone:"440-821-4709",birthday:"5/23"},
+  {name:"Traveon Beck",email:"traveonBeck22@gmail.com",phone:"310-944-4666",birthday:""},
+  {name:"Trevino Cochran",email:"cochran-t@sbcglobal.net",phone:"310-892-3672",birthday:""},
+  {name:"Victor Okotiuero",email:"okotiuero21@gmail.com",phone:"347-295-7666",birthday:"8/21"},
+  {name:"Andrew Blunk",email:"",phone:"",birthday:""},
+  {name:"Chris Tillman",email:"",phone:"",birthday:""},
+  {name:"Danny Gutierrez",email:"",phone:"",birthday:""},
+  {name:"David Cato",email:"",phone:"",birthday:""},
+  {name:"Dwayne Clay",email:"",phone:"",birthday:""},
+  {name:"Kaleel Garrett",email:"",phone:"",birthday:""},
+  {name:"Q",email:"",phone:"",birthday:""},
+  {name:"Quan Reeves",email:"",phone:"",birthday:""},
+  {name:"Ron Daniels",email:"",phone:"",birthday:""},
+  {name:"William Allen-Baines",email:"",phone:"",birthday:""},
+  {name:"William Binion",email:"",phone:"",birthday:""},
+  {name:"Kaymen Cureton",email:"kcureton1@icloud.com",phone:"562-262-7865",birthday:"12/20"},
+  {name:"Rj Swift",email:"lion9676@yahoo.com",phone:"562-644-7997",birthday:"7/4"},
+  {name:"Kaanon MacFarlane",email:"kaanonm@gmail.com",phone:"909-224-6123",birthday:"9/9"}
+];
+
+let selectedMember = null;
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 's-returning') renderNames('');
+}
+
+function getInitials(name) {
+  return name.split(' ').filter(Boolean).slice(0,2).map(w => w[0].toUpperCase()).join('');
+}
+
+function renderNames(filter) {
+  const list = document.getElementById('name-list');
+  const f = filter.toLowerCase();
+  const filtered = MEMBERS.filter(m => m.name.toLowerCase().includes(f));
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:16px;text-align:center;font-size:14px;color:#999;">No match — try signing in as new.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(m =>
+    `<div class="name-item" onclick="selectMember('${m.name.replace(/'/g,"\\'")}')">${m.name}</div>`
+  ).join('');
+}
+
+function filterNames(v) { renderNames(v); }
+
+function selectMember(name) {
+  selectedMember = MEMBERS.find(m => m.name === name);
+  document.getElementById('confirm-name-text').textContent = name;
+  document.getElementById('confirm-initials').textContent = getInitials(name);
+  const info = document.getElementById('confirm-info');
+  info.innerHTML = [
+    selectedMember.email ? `<div class="info-row"><span class="info-label">Email</span><span class="info-value">${selectedMember.email}</span></div>` : '',
+    selectedMember.phone ? `<div class="info-row"><span class="info-label">Phone</span><span class="info-value">${selectedMember.phone}</span></div>` : '',
+    selectedMember.birthday ? `<div class="info-row"><span class="info-label">Birthday</span><span class="info-value">${selectedMember.birthday}</span></div>` : ''
+  ].join('');
+  show('s-confirm');
+}
+
+function splitName(fullName) {
+  const parts = fullName.trim().split(' ');
+  const firstName = parts[0];
+  const lastName = parts.slice(1).join(' ');
+  return { firstName, lastName };
+}
+
+function submitReturning() {
+  const { firstName, lastName } = splitName(selectedMember.name);
+  const payload = {
+    type: 'Returning',
+    firstName: firstName,
+    lastName: lastName,
+    email: selectedMember.email,
+    phone: selectedMember.phone,
+    birthday: selectedMember.birthday,
+    timestamp: new Date().toLocaleString('en-US', {weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'})
+  };
+  sendData(payload);
+  document.getElementById('done-title').textContent = 'Checked In!';
+  document.getElementById('done-msg').textContent = 'Good to see you, ' + firstName + '. Glad you\'re here tonight.';
+  show('s-done');
+}
+
+function submitNew() {
+  const fullName = document.getElementById('new-name').value.trim();
+  if (!fullName) { alert('Please enter your name.'); return; }
+  const { firstName, lastName } = splitName(fullName);
+  const payload = {
+    type: 'NEW',
+    firstName: firstName,
+    lastName: lastName,
+    email: document.getElementById('new-email').value.trim(),
+    phone: document.getElementById('new-phone').value.trim(),
+    birthday: document.getElementById('new-bday').value.trim(),
+    timestamp: new Date().toLocaleString('en-US', {weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'})
+  };
+  sendData(payload);
+  document.getElementById('done-title').textContent = 'Welcome!';
+  document.getElementById('done-msg').textContent = 'So glad you joined us tonight, ' + firstName + '. We hope to see you again next Wednesday!';
+  show('s-done');
+}
+
+function sendData(data) {
+  fetch(SHEET_URL, { method: 'POST', body: JSON.stringify(data), mode: 'no-cors' }).catch(() => {});
+}
+
+function reset() {
+  document.getElementById('name-search').value = '';
+  ['new-name','new-email','new-phone','new-bday'].forEach(id => document.getElementById(id).value = '');
+  selectedMember = null;
+  show('s-welcome');
+}
+
+renderNames('');
+</script>
+</body>
+</html>
